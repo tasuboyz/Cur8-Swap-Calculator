@@ -1,0 +1,260 @@
+<html><head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Steem Swap Calculator</title>
+<style>
+:root {
+  --primary: #2a5aa7;
+  --secondary: #4c8dff;
+  --dark: #1a365d;
+  --light: #f0f4f8;
+}
+
+/* Existing CSS remains the same */
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: var(--light);
+  color: var(--dark);
+}
+
+.calculator {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h1 {
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--dark);
+  font-weight: bold;
+}
+
+select, input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+select:focus, input:focus {
+  border-color: var(--secondary);
+  outline: none;
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: var(--secondary);
+}
+
+.result {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--light);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.rate-display {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.loading {
+  display: none;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.loading.active {
+  display: block;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.result.active {
+  animation: pulse 0.5s ease-in-out;
+}
+
+.error {
+  color: #dc3545;
+  text-align: center;
+  margin: 1rem 0;
+  display: none;
+}
+</style>
+</head>
+<body>
+<div class="calculator">
+  <h1>Steem Swap Calculator</h1>
+  
+  <div class="input-group">
+    <label for="fromCoin">From Coin:</label>
+    <select id="fromCoin">
+      <option value="STEEM">STEEM</option>
+      <option value="SBD">SBD</option>
+      <option value="BTC">BTC</option>
+      <option value="ETH">ETH</option>
+      <option value="TRX">TRON (TRX)</option>
+      <option value="USDT">USDT</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label for="toCoin">To Coin:</label>
+    <select id="toCoin">
+      <option value="BTC">BTC</option>
+      <option value="ETH">ETH</option>
+      <option value="STEEM">STEEM</option>
+      <option value="SBD">SBD</option>
+      <option value="TRX">TRON (TRX)</option>
+      <option value="USDT">USDT</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" min="0" step="0.000001" placeholder="Enter amount...">
+  </div>
+
+  <button onclick="calculateSwap()">Calculate Swap</button>
+
+  <div class="loading" id="loading">Loading rates...</div>
+  <div class="error" id="error"></div>
+
+  <div class="result" id="result">
+    <h3>Estimated Output</h3>
+    <p id="outputAmount">-- --</p>
+    <p class="rate-display" id="rateDisplay">1 STEEM = -- BTC</p>
+  </div>
+</div>
+
+<script>
+let exchangeRates = {};
+
+// Function to fetch current prices from CoinGecko API
+async function fetchPrices() {
+  const loading = document.getElementById('loading');
+  const error = document.getElementById('error');
+  
+  loading.classList.add('active');
+  error.style.display = 'none';
+  
+  try {
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,steem,steem-dollars,tron,tether&vs_currencies=usd');
+    const data = await response.json();
+    
+    // Convert the API response to our exchange rates format
+    const usdRates = {
+      BTC: data.bitcoin.usd,
+      ETH: data.ethereum.usd,
+      STEEM: data.steem.usd,
+      SBD: data['steem-dollars'].usd,
+      TRX: data.tron.usd,
+      USDT: data.tether.usd
+    };
+
+    // Calculate cross rates for all pairs
+    exchangeRates = {};
+    const coins = ['STEEM', 'SBD', 'BTC', 'ETH', 'TRX', 'USDT'];
+    
+    coins.forEach(fromCoin => {
+      exchangeRates[fromCoin] = {};
+      coins.forEach(toCoin => {
+        exchangeRates[fromCoin][toCoin] = usdRates[toCoin] === 0 ? 0 : usdRates[fromCoin] / usdRates[toCoin];
+      });
+    });
+
+  } catch (err) {
+    error.textContent = 'Error fetching rates. Please try again later.';
+    error.style.display = 'block';
+    console.error('Error fetching rates:', err);
+  } finally {
+    loading.classList.remove('active');
+  }
+}
+
+async function calculateSwap() {
+  const fromCoin = document.getElementById('fromCoin').value;
+  const toCoin = document.getElementById('toCoin').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+
+  if (isNaN(amount) || amount <= 0) {
+    alert('Please enter a valid amount');
+    return;
+  }
+
+  if (Object.keys(exchangeRates).length === 0) {
+    await fetchPrices();
+  }
+
+  const rate = exchangeRates[fromCoin][toCoin];
+  const output = amount * rate;
+
+  const resultElement = document.getElementById('result');
+  const outputElement = document.getElementById('outputAmount');
+  const rateDisplay = document.getElementById('rateDisplay');
+
+  outputElement.textContent = `${output.toFixed(8)} ${toCoin}`;
+  rateDisplay.textContent = `1 ${fromCoin} = ${rate.toFixed(8)} ${toCoin}`;
+
+  resultElement.classList.remove('active');
+  void resultElement.offsetWidth;
+  resultElement.classList.add('active');
+}
+
+// Prevent selecting same coin in both dropdowns
+document.getElementById('fromCoin').addEventListener('change', function(e) {
+  const toCoin = document.getElementById('toCoin');
+  Array.from(toCoin.options).forEach(option => {
+    option.disabled = option.value === e.target.value;
+  });
+});
+
+document.getElementById('toCoin').addEventListener('change', function(e) {
+  const fromCoin = document.getElementById('fromCoin');
+  Array.from(fromCoin.options).forEach(option => {
+    option.disabled = option.value === e.target.value;
+  });
+});
+
+// Fetch initial rates when page loads
+fetchPrices();
+
+// Refresh rates every 60 seconds
+setInterval(fetchPrices, 60000);
+</script>
+</body></html>
