@@ -3,193 +3,230 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Steem Swap Calculator</title>
   <style>
-  /* All existing styles remain the same */
-  :root {
-    --primary: #2a5aa7;
-    --secondary: #4c8dff;
-    --dark: #1a365d;
-    --light: #f0f4f8;
-    --bg: #f0f4f8;
-    --text: #1a365d;
-    --card-bg: white;
-    --input-border: #ddd;
+:root {
+  --primary: #2a5aa7;
+  --secondary: #4c8dff;
+  --dark: #1a365d;
+  --light: #f0f4f8;
+  --bg: #f0f4f8;
+  --text: #1a365d;
+  --card-bg: white;
+  --input-border: #ddd;
+}
+
+[data-theme="dark"] {
+  --primary: #4c8dff;
+  --secondary: #2a5aa7;
+  --dark: #f0f4f8;
+  --light: #1a1a1a;
+  --bg: #121212;
+  --text: #f0f4f8;
+  --card-bg: #1e1e1e;
+  --input-border: #333;
+}
+
+.theme-switch {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2px solid var(--primary);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.theme-switch:hover {
+  transform: scale(1.1);
+}
+
+.coin-logo {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 1rem;
+  display: block;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 2px var(--primary));
+  animation: floatAnimation 3s ease-in-out infinite;
+}
+
+.coin-logo:hover {
+  transform: rotate(360deg) scale(1.2);
+  filter: drop-shadow(0 0 8px var(--primary));
+}
+
+@keyframes floatAnimation {
+  0% {
+    transform: translateY(0px);
   }
-  
-  [data-theme="dark"] {
-    --primary: #4c8dff;
-    --secondary: #2a5aa7;
-    --dark: #f0f4f8;
-    --light: #1a1a1a;
-    --bg: #121212;
-    --text: #f0f4f8;
-    --card-bg: #1e1e1e;
-    --input-border: #333;
+  50% {
+    transform: translateY(-10px);
   }
-  
-  /* All other styles remain exactly the same */
-  .theme-switch {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 50%;
-    background: var(--card-bg);
-    border: 2px solid var(--primary);
-    color: var(--text);
-    width: 40px;
-    height: 40px;
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.3s ease;
+}
+
+.calculator {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--card-bg);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+h1 {
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+  font-weight: bold;
+}
+
+select, input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid var(--input-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: all 0.3s;
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+select:focus, input:focus {
+  border-color: var(--secondary);
+  outline: none;
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: var(--secondary);
+}
+
+.result {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--bg);
+  border-radius: 6px;
+  text-align: center;
+}
+
+.rate-display {
+  font-size: 0.9rem;
+  color: var(--text);
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+
+.loading {
+  display: none;
+  text-align: center;
+  margin: 1rem 0;
+  color: var(--text);
+}
+
+.loading.active {
+  display: block;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+.result.active {
+  animation: pulse 0.5s ease-in-out;
+}
+
+.error {
+  color: #dc3545;
+  text-align: center;
+  margin: 1rem 0;
+  display: none;
+}
+
+/* Add a blur style when focused */
+.blur-on-focus:focus {
+  backdrop-filter: blur(4px);
+}
+
+/* Style for the keyboard dismiss button */
+.keyboard-dismiss {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: none; /* Hidden by default, shown on mobile when keyboard is active */
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1000;
+  cursor: pointer;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Show dismiss button only on mobile devices */
+@media (max-width: 768px) {
+  .keyboard-dismiss.show {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
   }
-  
-  .theme-switch:hover {
-    transform: scale(1.1);
-  }
-  
-  .coin-logo {
-    width: 50px;
-    height: 50px;
-    margin: 0 auto 1rem;
-    display: block;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: drop-shadow(0 0 2px var(--primary));
-    animation: floatAnimation 3s ease-in-out infinite;
-  }
-  
-  .coin-logo:hover {
-    transform: rotate(360deg) scale(1.2);
-    filter: drop-shadow(0 0 8px var(--primary));
-  }
-  
-  @keyframes floatAnimation {
-    0% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-    100% {
-      transform: translateY(0px);
-    }
-  }
-  
-  body {
-    font-family: system-ui, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background: var(--bg);
-    color: var(--text);
-    transition: all 0.3s ease;
-  }
-  
-  .calculator {
-    max-width: 600px;
-    margin: 0 auto;
-    background: var(--card-bg);
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-  }
-  
-  h1 {
-    color: var(--primary);
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .input-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--text);
-    font-weight: bold;
-  }
-  
-  select, input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 2px solid var(--input-border);
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: all 0.3s;
-    background: var(--card-bg);
-    color: var(--text);
-  }
-  
-  select:focus, input:focus {
-    border-color: var(--secondary);
-    outline: none;
-  }
-  
-  button {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 1rem 2rem;
-    border-radius: 6px;
-    font-size: 1rem;
-    cursor: pointer;
-    width: 100%;
-    transition: background 0.3s;
-  }
-  
-  button:hover {
-    background: var(--secondary);
-  }
-  
-  .result {
-    margin-top: 2rem;
-    padding: 1rem;
-    background: var(--bg);
-    border-radius: 6px;
-    text-align: center;
-  }
-  
-  .rate-display {
-    font-size: 0.9rem;
-    color: var(--text);
-    opacity: 0.7;
-    margin-top: 0.5rem;
-  }
-  
-  .loading {
-    display: none;
-    text-align: center;
-    margin: 1rem 0;
-    color: var(--text);
-  }
-  
-  .loading.active {
-    display: block;
-  }
-  
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-  }
-  
-  .result.active {
-    animation: pulse 0.5s ease-in-out;
-  }
-  
-  .error {
-    color: #dc3545;
-    text-align: center;
-    margin: 1rem 0;
-    display: none;
-  }
+}
   </style>
   </head>
   <body>
   <button class="theme-switch" id="themeSwitch">🌓</button>
+  <button class="keyboard-dismiss" id="keyboardDismiss" aria-label="Dismiss keyboard"></button>
   <div class="calculator">
     <img src="https://imgur.com/jorahtU.png" 
          alt="Cur8 cryptocurrency logo in blue and white" 
@@ -225,6 +262,7 @@
         <option value="HIVE">HIVE</option>
         <option value="HBD">HBD</option>
         <option value="LTC">LTC</option>
+        <option value="EUR">EUR</option>
       </select>
     </div>
   
@@ -383,5 +421,34 @@
       window.scrollTo(0, 0);
     }, 100);
   });
-  </script>
-  </body></html>
+
+  function setupKeyboardHandling() {
+  const inputs = document.querySelectorAll('input');
+  const keyboardDismissBtn = document.getElementById('keyboardDismiss');
+  
+  inputs.forEach(input => {
+    input.addEventListener('focus', () => {
+      if (window.innerWidth <= 768) {
+        keyboardDismissBtn.classList.add('show');
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      keyboardDismissBtn.classList.remove('show');
+    });
+  });
+
+  keyboardDismissBtn.addEventListener('click', () => {
+    document.activeElement.blur();
+    keyboardDismissBtn.classList.remove('show');
+  });
+
+  document.addEventListener('touchend', (e) => {
+    const activeElement = document.activeElement;
+    if (activeElement && activeElement.tagName === 'INPUT' && !activeElement.contains(e.target)) {
+      activeElement.blur();
+    }
+  });
+}
+</script>
+</body></html>
