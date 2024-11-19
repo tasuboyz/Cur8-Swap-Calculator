@@ -1,455 +1,430 @@
 <html><head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Steem Swap Calculator</title>
-  <style>
-:root {
-  --primary: #2a5aa7;
-  --secondary: #4c8dff;
-  --dark: #1a365d;
-  --light: #f0f4f8;
-  --bg: #f0f4f8;
-  --text: #1a365d;
-  --card-bg: white;
-  --input-border: #ddd;
-}
-
-[data-theme="dark"] {
-  --primary: #4c8dff;
-  --secondary: #2a5aa7;
-  --dark: #f0f4f8;
-  --light: #1a1a1a;
-  --bg: #121212;
-  --text: #f0f4f8;
-  --card-bg: #1e1e1e;
-  --input-border: #333;
-}
-
-.theme-switch {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 50%;
-  background: var(--card-bg);
-  border: 2px solid var(--primary);
-  color: var(--text);
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.theme-switch:hover {
-  transform: scale(1.1);
-}
-
-.coin-logo {
-  width: 50px;
-  height: 50px;
-  margin: 0 auto 1rem;
-  display: block;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: drop-shadow(0 0 2px var(--primary));
-  animation: floatAnimation 3s ease-in-out infinite;
-}
-
-.coin-logo:hover {
-  transform: rotate(360deg) scale(1.2);
-  filter: drop-shadow(0 0 8px var(--primary));
-}
-
-@keyframes floatAnimation {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-body {
-  font-family: system-ui, sans-serif;
-  margin: 0;
-  padding: 20px;
-  background: var(--bg);
-  color: var(--text);
-  transition: all 0.3s ease;
-}
-
-.calculator {
-  max-width: 600px;
-  margin: 0 auto;
-  background: var(--card-bg);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
-}
-
-h1 {
-  color: var(--primary);
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.input-group {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--text);
-  font-weight: bold;
-}
-
-select, input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid var(--input-border);
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: all 0.3s;
-  background: var(--card-bg);
-  color: var(--text);
-}
-
-select:focus, input:focus {
-  border-color: var(--secondary);
-  outline: none;
-}
-
-button {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 1rem 2rem;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background: var(--secondary);
-}
-
-.result {
-  margin-top: 2rem;
-  padding: 1rem;
-  background: var(--bg);
-  border-radius: 6px;
-  text-align: center;
-}
-
-.rate-display {
-  font-size: 0.9rem;
-  color: var(--text);
-  opacity: 0.7;
-  margin-top: 0.5rem;
-}
-
-.loading {
-  display: none;
-  text-align: center;
-  margin: 1rem 0;
-  color: var(--text);
-}
-
-.loading.active {
-  display: block;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
-}
-
-.result.active {
-  animation: pulse 0.5s ease-in-out;
-}
-
-.error {
-  color: #dc3545;
-  text-align: center;
-  margin: 1rem 0;
-  display: none;
-}
-
-/* Add a blur style when focused */
-.blur-on-focus:focus {
-  backdrop-filter: blur(4px);
-}
-
-/* Style for the keyboard dismiss button */
-.keyboard-dismiss {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: none; /* Hidden by default, shown on mobile when keyboard is active */
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  z-index: 1000;
-  cursor: pointer;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Show dismiss button only on mobile devices */
-@media (max-width: 768px) {
-  .keyboard-dismiss.show {
-    display: flex;
-  }
-}
-  </style>
-  </head>
-  <body>
-  <button class="theme-switch" id="themeSwitch">🌓</button>
-  <button class="keyboard-dismiss" id="keyboardDismiss" aria-label="Dismiss keyboard"></button>
-  <div class="calculator">
-    <img src="https://imgur.com/jorahtU.png" 
-         alt="Cur8 cryptocurrency logo in blue and white" 
-         class="coin-logo"
-         width="100" 
-         height="100">
-    <h1>Cur8 Swap Calculator</h1>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cur8 Swap Calculator</title>
+    <style>
+    :root {
+      --primary: #2a5aa7;
+      --secondary: #4c8dff;
+      --dark: #1a365d;
+      --light: #f0f4f8;
+      --bg: #f0f4f8;
+      --text: #1a365d;
+      --card-bg: white;
+      --input-border: #ddd;
+    }
     
-    <div class="input-group">
-      <label for="fromCoin">From Coin:</label>
-      <select id="fromCoin">
-        <option value="STEEM">STEEM</option>
-        <option value="SBD">SBD</option>
-        <option value="BTC">BTC</option>
-        <option value="ETH">ETH</option>
-        <option value="TRX">TRON (TRX)</option>
-        <option value="USDT">USDT</option>
-        <option value="HIVE">HIVE</option>
-        <option value="HBD">HBD</option>
-        <option value="LTC">LTC</option>
-      </select>
-    </div>
-  
-    <div class="input-group">
-      <label for="toCoin">To Coin:</label>
-      <select id="toCoin">
-        <option value="BTC">BTC</option>
-        <option value="ETH">ETH</option>
-        <option value="STEEM">STEEM</option>
-        <option value="SBD">SBD</option>
-        <option value="TRX">TRON (TRX)</option>
-        <option value="USDT">USDT</option>
-        <option value="HIVE">HIVE</option>
-        <option value="HBD">HBD</option>
-        <option value="LTC">LTC</option>
-        <option value="EUR">EUR</option>
-      </select>
-    </div>
-  
-    <div class="input-group">
-      <label for="amount">Amount:</label>
-      <input type="number" id="amount" min="0" step="0.000001" placeholder="Enter amount...">
-    </div>
-  
-    <button onclick="calculateSwap()">Calculate Swap</button>
-  
-    <div class="loading" id="loading">Loading rates...</div>
-    <div class="error" id="error"></div>
-  
-    <div class="result" id="result">
-      <h3>Estimated Output</h3>
-      <p id="outputAmount">-- --</p>
-      <p class="rate-display" id="rateDisplay">1 STEEM = -- BTC</p>
-    </div>
-  </div>
-  
-  <script>
-  let exchangeRates = {};
-  
-  // Theme handling
-  function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('theme', theme);
-  }
-  
-  function toggleTheme() {
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-  }
-  
-  // Initialize theme
-  document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    setupKeyboardHandling();
-  });
-  
-  document.getElementById('themeSwitch').addEventListener('click', toggleTheme);
-  
-  async function fetchPrices() {
-    const loading = document.getElementById('loading');
-    const error = document.getElementById('error');
+    [data-theme="dark"] {
+      --primary: #4c8dff;
+      --secondary: #2a5aa7;
+      --dark: #f0f4f8;
+      --light: #1a1a1a;
+      --bg: #121212;
+      --text: #f0f4f8;
+      --card-bg: #1e1e1e;
+      --input-border: #333;
+    }
     
-    loading.classList.add('active');
-    error.style.display = 'none';
+    .theme-switch {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 2px solid var(--primary);
+      color: var(--text);
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
     
-    try {
-      // First fetch for main coins
-      const response1 = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,steem,steem-dollars,tron,tether,hive,hive_dollar,litecoin&vs_currencies=usd');
-      const data = await response1.json();
+    .theme-switch:hover {
+      transform: scale(1.1);
+    }
+    
+    .coin-logo {
+      width: 50px;
+      height: 50px;
+      margin: 0 auto 1rem;
+      display: block;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      filter: drop-shadow(0 0 2px var(--primary));
+      animation: floatAnimation 3s ease-in-out infinite;
+    }
+    
+    .coin-logo:hover {
+      transform: rotate(360deg) scale(1.2);
+      filter: drop-shadow(0 0 8px var(--primary));
+    }
+    
+    @keyframes floatAnimation {
+      0% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+      100% {
+        transform: translateY(0px);
+      }
+    }
+    
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      transition: all 0.3s ease;
+    }
+    
+    .calculator {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+    
+    h1 {
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      font-weight: bold;
+    }
+    
+    select, input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid var(--input-border);
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      background: var(--card-bg);
+      color: var(--text);
+    }
+    
+    select:focus, input:focus {
+      border-color: var(--secondary);
+      outline: none;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s;
+    }
+    
+    button:hover {
+      background: var(--secondary);
+    }
+    
+    .result {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: var(--bg);
+      border-radius: 6px;
+      text-align: center;
+    }
+    
+    .rate-display {
+      font-size: 0.9rem;
+      color: var(--text);
+      opacity: 0.7;
+      margin-top: 0.5rem;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 1rem 0;
+      color: var(--text);
+    }
+    
+    .loading.active {
+      display: block;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    
+    .result.active {
+      animation: pulse 0.5s ease-in-out;
+    }
+    
+    .error {
+      color: #dc3545;
+      text-align: center;
+      margin: 1rem 0;
+      display: none;
+    }
+    
+    /* Add a blur style when focused */
+    .blur-on-focus:focus {
+      backdrop-filter: blur(4px);
+    }
+    
+    /* Style for the keyboard dismiss button */
+    .keyboard-dismiss {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: none; /* Hidden by default, shown on mobile when keyboard is active */
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      cursor: pointer;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Show dismiss button only on mobile devices */
+    @media (max-width: 768px) {
+      .keyboard-dismiss.show {
+        display: flex;
+      }
+    }
+    </style>
+    </head>
+    <body>
+    <button class="theme-switch" id="themeSwitch">🌓</button>
+    <button class="keyboard-dismiss" id="keyboardDismiss" aria-label="Dismiss keyboard">
+      ⌨️
+    </button>
+    <div class="calculator">
+      <img src="https://imgur.com/jorahtU.png" 
+           alt="Cur8 cryptocurrency logo in blue and white" 
+           class="coin-logo"
+           width="100" 
+           height="100">
+      <h1>Cur8 Swap Calculator</h1>
       
-      // Create rates object with safeguards
-      const usdRates = {
-        BTC: data.bitcoin?.usd || 0,
-        ETH: data.ethereum?.usd || 0,
-        STEEM: data.steem?.usd || 0,
-        SBD: data['steem-dollars']?.usd || 0,
-        TRX: data.tron?.usd || 0,
-        USDT: data.tether?.usd || 1, // USDT is typically 1 USD
-        HIVE: data.hive?.usd || 0,
-        HBD: data.hive_dollar?.usd || 0,
-        LTC: data.litecoin?.usd || 0
-      };
-  
-      // Calculate exchange rates
-      exchangeRates = {};
-      const coins = Object.keys(usdRates);
+      <div class="input-group">
+        <label for="fromCoin">From Coin:</label>
+        <select id="fromCoin">
+          <option value="STEEM">STEEM</option>
+          <option value="SBD">SBD</option>
+          <option value="BTC">BTC</option>
+          <option value="ETH">ETH</option>
+          <option value="TRX">TRON (TRX)</option>
+          <option value="USDT">USDT</option>
+          <option value="HIVE">HIVE</option>
+          <option value="HBD">HBD</option>
+          <option value="LTC">LTC</option>
+        </select>
+      </div>
+    
+      <div class="input-group">
+        <label for="toCoin">To Coin:</label>
+        <select id="toCoin">
+          <option value="BTC">BTC</option>
+          <option value="ETH">ETH</option>
+          <option value="STEEM">STEEM</option>
+          <option value="SBD">SBD</option>
+          <option value="TRX">TRON (TRX)</option>
+          <option value="USDT">USDT</option>
+          <option value="HIVE">HIVE</option>
+          <option value="HBD">HBD</option>
+          <option value="LTC">LTC</option>
+          <!-- <option value="EUR">EUR</option> -->
+        </select>
+      </div>
+    
+      <div class="input-group">
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" min="0" step="0.000001" placeholder="Enter amount...">
+      </div>
+
+      <button onclick="calculateSwap()">Calculate Swap</button>
+    
+      <div class="loading" id="loading">Loading rates...</div>
+      <div class="error" id="error"></div>
+    
+      <div class="result" id="result">
+        <h3>Estimated Output</h3>
+        <p id="outputAmount">-- --</p>
+        <p class="rate-display" id="rateDisplay">1 STEEM = -- BTC</p>
+      </div>
+    </div>
+    
+    <script>
+    let exchangeRates = {};
+    
+    // Theme handling
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    }
+    
+    function toggleTheme() {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+    }
+    
+    // Initialize theme
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      setTheme(savedTheme);
+      setupKeyboardHandling();
+    });
+    
+    document.getElementById('themeSwitch').addEventListener('click', toggleTheme);
+    
+    async function fetchPrices() {
+      const loading = document.getElementById('loading');
+      const error = document.getElementById('error');
       
-      coins.forEach(fromCoin => {
-        exchangeRates[fromCoin] = {};
-        coins.forEach(toCoin => {
-          if (usdRates[toCoin] && usdRates[toCoin] !== 0) {
-            exchangeRates[fromCoin][toCoin] = usdRates[fromCoin] / usdRates[toCoin];
-          } else {
-            exchangeRates[fromCoin][toCoin] = 0;
+      loading.classList.add('active');
+      error.style.display = 'none';
+      
+      try {
+        const response1 = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,steem,steem-dollars,tron,tether,hive,hive_dollar,litecoin&vs_currencies=usd');
+        const data = await response1.json();
+      
+        // Create rates object with safeguards
+        const usdRates = {
+            BTC: data.bitcoin?.usd || 0,
+            ETH: data.ethereum?.usd || 0,
+            STEEM: data.steem?.usd || 0,
+            SBD: data['steem-dollars']?.usd || 0,
+            TRX: data.tron?.usd || 0,
+            USDT: data.tether?.usd || 1, // USDT is typically 1 USD
+            HIVE: data.hive?.usd || 0,
+            HBD: data.hive_dollar?.usd || 0,
+            LTC: data.litecoin?.usd || 0
+        };
+    
+        exchangeRates = {};
+        const coins = Object.keys(usdRates);
+        
+        coins.forEach(fromCoin => {
+          exchangeRates[fromCoin] = {};
+          coins.forEach(toCoin => {
+            exchangeRates[fromCoin][toCoin] = usdRates[toCoin] === 0 ? 0 : usdRates[fromCoin] / usdRates[toCoin];
+          });
+        });
+    
+      } catch (err) {
+        error.textContent = 'Error fetching rates. Please try again later.';
+        error.style.display = 'block';
+        console.error('Error fetching rates:', err);
+      } finally {
+        loading.classList.remove('active');
+      }
+    }
+    
+    async function calculateSwap() {
+      const fromCoin = document.getElementById('fromCoin').value;
+      const toCoin = document.getElementById('toCoin').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+    
+      if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount');
+        return;
+      }
+    
+      if (Object.keys(exchangeRates).length === 0) {
+        await fetchPrices();
+      }
+    
+      const rate = exchangeRates[fromCoin][toCoin];
+      const output = amount * rate;
+    
+      const resultElement = document.getElementById('result');
+      const outputElement = document.getElementById('outputAmount');
+      const rateDisplay = document.getElementById('rateDisplay');
+    
+      outputElement.textContent = `${output.toFixed(8)} ${toCoin}`;
+      rateDisplay.textContent = `1 ${fromCoin} = ${rate.toFixed(8)} ${toCoin}`;
+    
+      resultElement.classList.remove('active');
+      void resultElement.offsetWidth;
+      resultElement.classList.add('active');
+    }
+    
+    document.getElementById('fromCoin').addEventListener('change', function(e) {
+      const toCoin = document.getElementById('toCoin');
+      Array.from(toCoin.options).forEach(option => {
+        option.disabled = option.value === e.target.value;
+      });
+    });
+    
+    document.getElementById('toCoin').addEventListener('change', function(e) {
+      const fromCoin = document.getElementById('fromCoin');
+      Array.from(fromCoin.options).forEach(option => {
+        option.disabled = option.value === e.target.value;
+      });
+    });
+    
+    function setupKeyboardHandling() {
+      const inputs = document.querySelectorAll('input');
+      const keyboardDismissBtn = document.getElementById('keyboardDismiss');
+      
+      inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+          if (window.innerWidth <= 768) {
+            keyboardDismissBtn.classList.add('show');
           }
         });
+    
+        input.addEventListener('blur', () => {
+          keyboardDismissBtn.classList.remove('show');
+        });
       });
-  
-    } catch (err) {
-      error.textContent = 'Error fetching rates. Please try again later.';
-      error.style.display = 'block';
-      console.error('Error fetching rates:', err);
-      exchangeRates = {}; // Reset rates on error
-    } finally {
-      loading.classList.remove('active');
+    
+      keyboardDismissBtn.addEventListener('click', () => {
+        document.activeElement.blur();
+        keyboardDismissBtn.classList.remove('show');
+      });
+    
+      document.addEventListener('touchend', (e) => {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement.tagName === 'INPUT' && !activeElement.contains(e.target)) {
+          activeElement.blur();
+        }
+      });
     }
-  }
-  
-  async function calculateSwap() {
-    const fromCoin = document.getElementById('fromCoin').value;
-    const toCoin = document.getElementById('toCoin').value;
-    const amount = parseFloat(document.getElementById('amount').value);
-    const error = document.getElementById('error');
-  
-    if (isNaN(amount) || amount <= 0) {
-      error.textContent = 'Please enter a valid amount';
-      error.style.display = 'block';
-      return;
-    }
-  
-    if (Object.keys(exchangeRates).length === 0) {
-      await fetchPrices();
-    }
-  
-    // Check if we have valid rates
-    if (!exchangeRates[fromCoin] || !exchangeRates[fromCoin][toCoin]) {
-      error.textContent = 'Exchange rate not available. Please try again later.';
-      error.style.display = 'block';
-      return;
-    }
-  
-    const rate = exchangeRates[fromCoin][toCoin];
-    const output = amount * rate;
-  
-    const resultElement = document.getElementById('result');
-    const outputElement = document.getElementById('outputAmount');
-    const rateDisplay = document.getElementById('rateDisplay');
-  
-    outputElement.textContent = `${output.toFixed(8)} ${toCoin}`;
-    rateDisplay.textContent = `1 ${fromCoin} = ${rate.toFixed(8)} ${toCoin}`;
-  
-    resultElement.classList.remove('active');
-    void resultElement.offsetWidth;
-    resultElement.classList.add('active');
-    error.style.display = 'none';
-  }
-  
-  // Handle coin selection changes
-  document.getElementById('fromCoin').addEventListener('change', function(e) {
-    const toCoin = document.getElementById('toCoin');
-    Array.from(toCoin.options).forEach(option => {
-      option.disabled = option.value === e.target.value;
-    });
-  });
-  
-  document.getElementById('toCoin').addEventListener('change', function(e) {
-    const fromCoin = document.getElementById('fromCoin');
-    Array.from(fromCoin.options).forEach(option => {
-      option.disabled = option.value === e.target.value;
-    });
-  });
-  
-  // Initialize
-  fetchPrices();
-  setInterval(fetchPrices, 60000); // Refresh every minute
-  
-  // Add blur event listener to input for mobile keyboard handling
-  document.getElementById('amount').addEventListener('blur', function() {
-    // Small delay to ensure the calculation happens after the keyboard closes
-    setTimeout(() => {
-      window.scrollTo(0, 0);
-    }, 100);
-  });
-
-  function setupKeyboardHandling() {
-  const inputs = document.querySelectorAll('input');
-  const keyboardDismissBtn = document.getElementById('keyboardDismiss');
-  
-  inputs.forEach(input => {
-    input.addEventListener('focus', () => {
-      if (window.innerWidth <= 768) {
-        keyboardDismissBtn.classList.add('show');
-      }
-    });
-
-    input.addEventListener('blur', () => {
-      keyboardDismissBtn.classList.remove('show');
-    });
-  });
-
-  keyboardDismissBtn.addEventListener('click', () => {
-    document.activeElement.blur();
-    keyboardDismissBtn.classList.remove('show');
-  });
-
-  document.addEventListener('touchend', (e) => {
-    const activeElement = document.activeElement;
-    if (activeElement && activeElement.tagName === 'INPUT' && !activeElement.contains(e.target)) {
-      activeElement.blur();
-    }
-  });
-}
-</script>
-</body></html>
+    
+    fetchPrices();
+    setInterval(fetchPrices, 60000);
+    </script>
+    </body></html>
