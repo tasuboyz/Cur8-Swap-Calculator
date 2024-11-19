@@ -302,6 +302,7 @@ button:hover {
   document.addEventListener('DOMContentLoaded', () => {
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
+    setupKeyboardHandling();
   });
   
   document.getElementById('themeSwitch').addEventListener('click', toggleTheme);
